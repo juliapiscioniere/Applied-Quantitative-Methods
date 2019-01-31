@@ -1,0 +1,12 @@
+---
+title: "Assignment3_UnivariateAssignment"
+author: "Julia Piscioniere"
+date: "1/31/2019"
+output: html_document
+---
+
+```{r}
+
+trees = read.csv('./data/treedata_subset.csv')
+str(trees)
+```
