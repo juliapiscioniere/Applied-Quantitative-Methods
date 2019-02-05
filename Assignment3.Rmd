@@ -1,0 +1,46 @@
+---
+title: "Assignment3"
+author: "Julia Piscioniere"
+date: "2/4/2019"
+output: html_document
+---
+
+```{r}
+trees = read.csv('https://raw.githubusercontent.com/dmcglinn/quant_methods/gh-pages/data/treedata_subset.csv')
+
+red_maples <- subset(trees, species == 'Acer rubrum')
+frasier_fir <- subset(trees, species == 'Abies fraseri')
+```
+
+```{r}
+red_maple_mod <- lm(cover ~ elev + tci + streamdist + disturb + beers, data = red_maples)
+
+summary(red_maple_mod)
+
+anova(red_maple_mod)
+
+```
+The variables that have significant p-values and that are consistent in both the summary and the anova are elevation, stream distance, and beers. 
+```{r}
+frasier_fir_mod <- lm(cover ~ elev + tci + streamdist + disturb + beers, frasier_fir)
+
+summary(frasier_fir_mod)
+
+anova(frasier_fir_mod)
+```
+```{r}
+frasier_fir_mod_glm <- glm(cover ~ elev + tci + streamdist + disturb + beers, frasier_fir, family = "poisson")
+
+summary(frasier_fir_mod_glm)
+
+anova(frasier_fir_mod_glm)
+```
+
+
+```{r}
+red_maple_mod_glm <- glm(cover ~ elev + tci + streamdist + disturb + beers, data = red_maples, family = "poisson")
+
+summary(red_maple_mod_glm)
+
+anova(red_maple_mod_glm)
+```
