@@ -20,7 +20,17 @@ summary(red_maple_mod)
 anova(red_maple_mod)
 
 ```
-The variables that have significant p-values and that are consistent in both the summary and the anova are elevation, stream distance, and beers. 
+How well does the exploratory model appear to explain cover?
+  The summary p-value is .00002669, indicating a meaningful relationship between the variables and cover. The low p-value   is statistically significant. The other number to look at is the R-Squared. The R-squared in this case is .04493,         saying   that the model can explain 4.5% of the variability in cover. 
+Which explanatory variables are the most important?
+  The variables that are consistently important in both the summary and the anova test are elevation, stream distance, and   beers, so these are the most important variables. TCI is more significant in the anova table with a significant p-value.   Elevation and beers are both influencing cover negatively, so as they increase cover decreases. As stream distance        increases, however, cover increases. When I changed this model and took out variables to either make it a purely          negative model or positive model, the r2 decreases. 
+Do model diagnostics reveal any problems with violations of OLS assumptions?
+```{r}
+par(mfrow = c(2,2))
+plot(red_maple_mod)
+```
+  The top right plot shows that the data is normally distributed because it mostly falls on the line, with slight            deviation. The top left plot shows even distribution around the center line, so the assumption of homoscadisticity is      held. The bottom left, also having to do with the error of the data is even around the center line with an interesting     pattern in the lower half; this is not enough to say that the assumption is not held, however. 
+
 ```{r}
 frasier_fir_mod <- lm(cover ~ elev + tci + streamdist + disturb + beers, frasier_fir)
 
@@ -28,12 +38,26 @@ summary(frasier_fir_mod)
 
 anova(frasier_fir_mod)
 ```
+How well does the exploratory model appear to explain cover?
+  The summary p-value is .00002215, indicating a meaningful relationship between the variables and cover. The low p-value   is statistically significant. The other number to look at is the R-Squared. The R-squared in this case is .5824, saying   that the model can explain 58.24% of the variability in cover. This is a very good R-squared value, and a much better     value than that of the red maple model; this is already showing that htis model better predicts cover for the frasier     fir than the one is for the red maple. 
+Which explanatory variables are the most important?
+  The only variable that is consistently important in both the summary and the anova test is elevation, so this is the one   most important value. Elevation here is positive, so as elevation increases the cover increases. This is different from   the red maple model.
+Do model diagnostics reveal any problems with violations of OLS assumptions?
 ```{r}
-frasier_fir_mod_glm <- glm(cover ~ elev + tci + streamdist + disturb + beers, frasier_fir, family = "poisson")
+par(mfrow = c(2,2))
+plot(frasier_fir_mod)
+```
+  These plots show that the data does not follow the assumptions. The top right plot shows that the data is not completely   normally distributed because it deviates from the line and has outliers impacting the data. The two plots on the left      show that the error is not the same across the line but it is concentrated in specific values.  
+  
+Are you able to explain variance in one species better than another, why might this be the case?
+  Yes, the variance is better explained in the frasier fir model because the r-squared is much higher than the red maple m   model. Upon further analysis, it is most likely because the frasier fir data does not meet all of the OLS assumptions. 
 
-summary(frasier_fir_mod_glm)
+```{r}
+frasier_fir_mod_decr <- lm(cover ~ elev, frasier_fir)
 
-anova(frasier_fir_mod_glm)
+summary(frasier_fir_mod_decr)
+
+anova(frasier_fir_mod_decr)
 ```
 
 
@@ -43,4 +67,41 @@ red_maple_mod_glm <- glm(cover ~ elev + tci + streamdist + disturb + beers, data
 summary(red_maple_mod_glm)
 
 anova(red_maple_mod_glm)
+
+pseudo_r2 = 1 -  red_maple_mod_glm$deviance / red_maple_mod_glm$null.deviance
+
+pseudo_r2
+
 ```
+The same variables are important here: elevation, stream distance, beers. The null deviance is 649.34 on 722 degrees of freedom and including the independent variables decreases that to 623.38 on 715, so there is a 25.96 decrease in deviance and a decrease of 7 degrees of freedom. I am going to rerun this model with only including the significant variables. 
+```{r}
+red_maple_mod_glm_decr <- glm(cover ~ elev + streamdist + beers, data = red_maples, family = "poisson")
+
+summary(red_maple_mod_glm_decr)
+
+anova(red_maple_mod_glm_decr)
+
+pseudo_r2_decr = 1 -  red_maple_mod_glm_decr$deviance / red_maple_mod_glm_decr$null.deviance
+
+pseudo_r2_decr
+
+```
+This model is worse than the one before because the gap in deviance decreased and the r-squared also decreases. Even though we took out the presumed unexplantory variables, the AIC is only a small amount less than the other model's. If this model were less complicated and a better, not over-fit model, then the AIC's should be different. 
+
+```{r}
+frasier_fir_mod_glm <- glm(cover ~ elev + tci + streamdist + disturb + beers, frasier_fir, family = "poisson")
+
+summary(frasier_fir_mod_glm)
+
+anova(frasier_fir_mod_glm)
+
+pseudo_r2_ff = 1 -  frasier_fir_mod_glm$deviance / frasier_fir_mod_glm$null.deviance
+
+pseudo_r2_ff
+```
+The only variable in this model that is significant is elevation. The deviance reduction, however, is imporessive because it decreases from 41 to 16 and decreases by 6 degrees of freedom. The r-squared is also good because it says that 60.9% of the variation in the data is explained by the model. 
+
+
+3. Provide a plain English summary (i.e., no statistics) of what you have found and what conclusions we can take away from your analysis?
+
+I built models to predict tree cover based off of variables including elevation, stream distance, topographic convergance index, and transformed slope aspect for two species: red maple and frasier fir. The OLS linear model that was first built for red maple was not a great model for the data because it did not explain the variation in the data; the model was significant and there were values that were significant but overall the model was not good. The OLS model for the frasier fir was better at predicting cover for the species but the assumptions were not met for this data, indicating that this linear model was not appropriate for the data. The cover variable is best as a categorical variable because even though it is a numerical value, it can be only one of ten categories; due to this, the next model used was the General Linear Model with a Poisson distribution. This measures the model based off of deviance; the model for the red maple was better with the GLM because the deviance went down when including the other independent variables. Unfortunately, however, the r-squared value, or the percentage of variation, was still low. This model was also much better for the frasier fir because the r-squared was high and the deviance also decreased when including the independent variables. 
